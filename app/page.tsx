@@ -344,7 +344,7 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-2 text-slate-500 text-[11px]">
           <div>
-            © {new Date().getFullYear()} Tooba Engineering. All rights reserved. Zero-investment production architecture.
+            © {new Date().getFullYear()} Tooba Engineering. All rights reserved. Custom coded by Ahsan Khan.
           </div>
           <div className="flex gap-4">
             <span>Cash on Delivery (COD)</span>
