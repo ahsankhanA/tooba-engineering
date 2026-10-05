@@ -1,0 +1,6 @@
+{
+  "name": "Tooba Engineering - Security & IT Portal",
+  "description": "Enterprise CCTV, Networking, and Security Engineering Portal with CEO Governance, Operations Admin, and B2B/B2C Customer Marketplace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
