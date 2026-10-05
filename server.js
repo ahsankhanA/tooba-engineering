@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { parse } = require('url');
+const next = require('next');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
@@ -9,6 +11,10 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
 const ceoRoutes = require('./routes/ceoRoutes');
+
+const dev = process.env.NODE_ENV !== 'production';
+const nextApp = next({ dev });
+const handle = nextApp.getRequestHandler();
 
 const app = express();
 
@@ -46,40 +52,51 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount Application Routes
+// Mount Application Backend Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/ceo', ceoRoutes);
 
-// Catch-all 404 for undefined API endpoints
-app.use('/api', (req, res) => {
+// Catch-all 404 specifically for undefined /api/* endpoints
+app.all(/^\/api(\/.*)?$/, (req, res) => {
   res.status(404).json({
     success: false,
     error: {
-      message: `Cannot ${req.method} ${req.originalUrl}. Route does not exist.`,
+      message: `Cannot ${req.method} ${req.originalUrl}. API endpoint does not exist.`,
       statusCode: 404,
     },
   });
 });
 
-// Centralized Error Handling Middleware (Always at the very end of pipeline)
+// Centralized API Error Handling Middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+// Next.js Frontend Request Handler for all other pages & static assets
+app.all(/.*/, (req, res) => {
+  const parsedUrl = parse(req.url, true);
+  handle(req, res, parsedUrl);
+});
+
+const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   try {
-    // Connect to database before accepting incoming connections
+    // 1. Connect to database before accepting incoming connections
     if (process.env.MONGODB_URI) {
       await connectDB();
     } else {
       console.warn('[SERVER WARNING] MONGODB_URI is not set. Database not initialized.');
     }
 
+    // 2. Prepare Next.js frontend
+    console.log('[TOOBA ERP] Preparing Next.js App Router engine...');
+    await nextApp.prepare();
+
+    // 3. Start listening
     app.listen(PORT, () => {
-      console.log(`[TOOBA SECURITY BACKEND] Server active on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
+      console.log(`[TOOBA SECURITY SYSTEM] Production Full-Stack Server active on port ${PORT} in ${process.env.NODE_ENV || 'production'} mode.`);
     });
   } catch (error) {
     console.error('[SERVER CRITICAL] Failed to bootstrap server:', error.message);
